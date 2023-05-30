@@ -2,17 +2,17 @@ package middleware
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	lru "github.com/hashicorp/golang-lru/v2"
 	"golang.org/x/time/rate"
 )
 
 type KeyFuc func(*gin.Context) string
 
 var (
-	keyMap = sync.Map{}
+	cache, _ = lru.New[string, *rate.Limiter](128)
 )
 
 // RateLimiter is a middleware that limits the request rate based on a given key
@@ -20,13 +20,12 @@ func GinRateLimiter(key KeyFuc, maxToken int, interval time.Duration) gin.Handle
 
 	return func(c *gin.Context) {
 		k := key(c)
-		v, ok := keyMap.Load(k)
+		v, ok := cache.Get(k)
 		if !ok {
 			v = rate.NewLimiter(rate.Every(interval), maxToken)
-			keyMap.Store(k, v)
+			cache.Add(k, v)
 		} else {
-			limiter := v.(*rate.Limiter)
-			if limiter.Allow() {
+			if v.Allow() {
 				c.Next()
 			} else {
 				c.AbortWithStatus(http.StatusTooManyRequests)

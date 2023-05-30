@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/gin-gonic/gin v1.9.0
+	github.com/hashicorp/golang-lru/v2 v2.0.2
 	golang.org/x/time v0.3.0
 )
 
