@@ -1,4 +1,4 @@
-module github.com/gin-midware
+module github.com/neoguojing/gin-midware
 
 go 1.19
 
